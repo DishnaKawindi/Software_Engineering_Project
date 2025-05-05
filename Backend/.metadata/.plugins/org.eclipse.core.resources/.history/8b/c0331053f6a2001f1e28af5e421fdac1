@@ -1,0 +1,197 @@
+// OrderController.java
+package com.example.coffeeshop.controller;
+
+import com.example.coffeeshop.model.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+    
+    @Autowired
+    private OrderRepository orderRepository;
+    
+    @Autowired
+    private MenuItemRepository menuItemRepository;
+    
+    @Autowired
+    private CartItemRepository cartItemRepository;
+
+    // Add item to existing order
+    @PostMapping("/{orderId}/items")
+    public ResponseEntity<?> addItemToOrder(
+            @PathVariable Long orderId,
+            @RequestBody OrderItemDTO itemDTO) {
+        return orderRepository.findById(orderId)
+            .map(order -> {
+                if (!order.isModifiable()) {
+                    return ResponseEntity.badRequest()
+                        .body("Order cannot be modified in " + order.getStatus() + " status");
+                }
+                
+                MenuItem menuItem = menuItemRepository.findById(itemDTO.getMenuItemId())
+                    .orElseThrow(() -> new RuntimeException("MenuItem not found"));
+                
+                CartItem cartItem = new CartItem();
+                cartItem.setMenuItem(menuItem);
+                cartItem.setSize(itemDTO.getSize());
+                cartItem.setQuantity(itemDTO.getQuantity());
+                cartItem.setSelectedCustomizations(itemDTO.getCustomizations());
+                
+                validateCustomizations(cartItem);
+                cartItem.calculatePrice();
+                
+                order.getItems().add(cartItem);
+                order.calculateTotal();
+                
+                Order updatedOrder = orderRepository.save(order);
+                return ResponseEntity.ok(updatedOrder);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // Modify existing item in order
+    @PutMapping("/{orderId}/items/{itemId}")
+    public ResponseEntity<?> modifyOrderItem(
+            @PathVariable Long orderId,
+            @PathVariable Long itemId,
+            @RequestBody OrderItemDTO itemDTO) {
+        return orderRepository.findById(orderId)
+            .map(order -> {
+                if (!order.isModifiable()) {
+                    return ResponseEntity.badRequest()
+                        .body("Order cannot be modified in " + order.getStatus() + " status");
+                }
+                
+                CartItem existingItem = order.getItems().stream()
+                    .filter(item -> item.getId().equals(itemId))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Item not found in order"));
+                
+                existingItem.setSize(itemDTO.getSize());
+                existingItem.setQuantity(itemDTO.getQuantity());
+                existingItem.setSelectedCustomizations(itemDTO.getCustomizations());
+                
+                validateCustomizations(existingItem);
+                existingItem.calculatePrice();
+                
+                order.calculateTotal();
+                Order updatedOrder = orderRepository.save(order);
+                return ResponseEntity.ok(updatedOrder);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // Delete item from order
+    @DeleteMapping("/{orderId}/items/{itemId}")
+    public ResponseEntity<?> deleteOrderItem(
+            @PathVariable Long orderId,
+            @PathVariable Long itemId) {
+        return orderRepository.findById(orderId)
+            .map(order -> {
+                if (!order.isModifiable()) {
+                    return ResponseEntity.badRequest()
+                        .body("Order cannot be modified in " + order.getStatus() + " status");
+                }
+                
+                order.getItems().removeIf(item -> item.getId().equals(itemId));
+                order.calculateTotal();
+                orderRepository.save(order);
+                
+                return ResponseEntity.ok().build();
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
+    private void validateCustomizations(CartItem cartItem) {
+        MenuItem menuItem = cartItem.getMenuItem();
+        Map<String, List<String>> availableCustomizations = menuItem.getCustomizations();
+        Map<String, String> selectedCustomizations = cartItem.getSelectedCustomizations();
+
+        if (selectedCustomizations == null || availableCustomizations == null) {
+            return; // No customizations to validate
+        }
+
+        for (Map.Entry<String, String> selected : selectedCustomizations.entrySet()) {
+            String customizationType = selected.getKey();
+            String selectedValue = selected.getValue();
+
+            // Check if customization type exists
+            if (!availableCustomizations.containsKey(customizationType)) {
+                throw new IllegalArgumentException(
+                    String.format("Invalid customization type '%s' for item '%s'", 
+                    customizationType, menuItem.getName())
+                );
+            }
+
+            // Check if selected value is valid for this customization type
+            List<String> validOptions = availableCustomizations.get(customizationType);
+            if (!validOptions.contains(selectedValue)) {
+                throw new IllegalArgumentException(
+                    String.format("Invalid value '%s' for customization '%s'. Valid options are: %s", 
+                    selectedValue, customizationType, String.join(", ", validOptions))
+                );
+            }
+        }
+    }
+    
+    // Checkout endpoint - review order and get total
+    @GetMapping("/{orderId}/checkout")
+    public ResponseEntity<?> reviewOrder(@PathVariable Long orderId) {
+        return orderRepository.findById(orderId)
+            .map(order -> {
+                if (order.getStatus() != OrderStatus.DRAFT) {
+                    return ResponseEntity.badRequest()
+                        .body("Order is already in " + order.getStatus() + " status");
+                }
+                
+                Map<String, Object> checkoutSummary = new HashMap<>();
+                checkoutSummary.put("orderId", order.getId());
+                checkoutSummary.put("customerName", order.getCustomerName());
+                checkoutSummary.put("items", order.getItems());
+                checkoutSummary.put("totalAmount", order.getTotalAmount());
+                checkoutSummary.put("orderDate", order.getOrderDate());
+                
+                return ResponseEntity.ok(checkoutSummary);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // Confirm checkout and seal the order
+    @PostMapping("/{orderId}/confirm")
+    public ResponseEntity<?> confirmOrder(@PathVariable Long orderId) {
+        return orderRepository.findById(orderId)
+            .map(order -> {
+                if (order.getStatus() != OrderStatus.DRAFT) {
+                    return ResponseEntity.badRequest()
+                        .body("Order is already in " + order.getStatus() + " status");
+                }
+                
+                if (order.getItems().isEmpty()) {
+                    return ResponseEntity.badRequest()
+                        .body("Cannot confirm empty order");
+                }
+                
+                order.setStatus(OrderStatus.CONFIRMED);
+                order.calculateTotal();  // Final calculation
+                Order confirmedOrder = orderRepository.save(order);
+                
+                Map<String, Object> confirmation = new HashMap<>();
+                confirmation.put("orderId", confirmedOrder.getId());
+                confirmation.put("status", confirmedOrder.getStatus());
+                confirmation.put("totalAmount", confirmedOrder.getTotalAmount());
+                confirmation.put("orderDate", confirmedOrder.getOrderDate());
+                confirmation.put("message", "Order confirmed successfully");
+                
+                return ResponseEntity.ok(confirmation);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+}

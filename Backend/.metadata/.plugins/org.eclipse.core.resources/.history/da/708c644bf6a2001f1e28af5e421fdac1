@@ -1,0 +1,11 @@
+package com.example.coffeeshop.model;
+
+public enum OrderStatus {
+	
+	DRAFT,      // Initial state, can be modified
+    CHECKOUT,   // Reviewed, waiting for payment
+    CONFIRMED,  // Paid and processing
+    COMPLETED,  // Order fulfilled
+    CANCELLED   // Order cancelled
+
+}

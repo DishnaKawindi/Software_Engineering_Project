@@ -1,0 +1,82 @@
+package com.example.coffeeshop;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+
+import com.example.coffeeshop.model.MenuItem;
+import com.example.coffeeshop.model.MenuItemRepository;
+
+@SpringBootApplication
+public class CoffeeshopApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(CoffeeshopApplication.class, args);
+	}
+	
+	@Bean
+//    public ApplicationRunner init(MenuItemRepository repository) {
+//        return args -> {
+//        	
+//        	//=========Basic small coffee===================================================
+//        	MenuItem smallCofee = new MenuItem();
+//        	smallCofee.setName("Regular Coffee");
+//        	smallCofee.setDescription("A regular blend of freshly roasted coffee.");
+//        	smallCofee.setCategory("Coffee");
+//        	smallCofee.setPrice(1.00);
+//        	smallCofee.setNutritionalInformation(new ArrayList<>(Arrays.asList("0 calories")));
+//        	smallCofee.setCustomizations(new HashMap<String, List<String>>() {{
+//                put("Milk Type", Arrays.asList("Whole", "Skim", "Almond", "Oat"));
+//                put("Flavor", Arrays.asList("Vanilla", "Caramel", "Hazelnut"));
+//            }});
+//            repository.save(smallCofee);
+//        	
+//        	
+//            //==========Special Coffee Item===========================================================
+//            MenuItem coffeeItem = new MenuItem();
+//            coffeeItem.setName("Caramel Macchiato");
+//            coffeeItem.setDescription("A rich blend of espresso, steamed milk, and caramel drizzle.");
+//            coffeeItem.setCategory("Coffee");
+//            coffeeItem.setPrice(2.50);
+//            coffeeItem.setNutritionalInformation(new ArrayList<>(Arrays.asList("150 calories", "10g sugar", "5g fat")));
+//            coffeeItem.setCustomizations(new HashMap<String, List<String>>() {{
+//                put("Milk Type", Arrays.asList("Whole", "Skim", "Almond", "Oat"));
+//                put("Flavor", Arrays.asList("Vanilla", "Caramel", "Hazelnut"));
+//            }});
+//            repository.save(coffeeItem);
+//
+//            //======Sample Tea Item=========================================================================
+//            MenuItem teaItem = new MenuItem();
+//            teaItem.setName("Chai Tea Latte");
+//            teaItem.setDescription("A warming blend of spiced black tea.");
+//            teaItem.setCategory("Tea");
+//            teaItem.setPrice(3.75);
+//            teaItem.setNutritionalInformation(new ArrayList<>(Arrays.asList("120 calories", "8g sugar")));
+//            teaItem.setCustomizations(new HashMap<String, List<String>>() {{
+//                put("Milk Type", Arrays.asList("Whole", "Soy", "Oat"));
+//                put("Sweetness", Arrays.asList("Light", "Medium", "Full"));
+//            }});
+//            repository.save(teaItem);
+//            
+//           //======Sample Pastry Item===============================================
+//            MenuItem pastryItem = new MenuItem();
+//            pastryItem.setName("Blueberry Muffin");
+//            pastryItem.setDescription("A freshly baked muffin filled with blueberries and topped with a sprinkle of sugar.");
+//            pastryItem.setCategory("Pastry");
+//            pastryItem.setPrice(2.25);
+//            pastryItem.setNutritionalInformation(new ArrayList<>(Arrays.asList("200 calories", "18g sugar")));
+//            pastryItem.setCustomizations(new HashMap<String, List<String>>() {{
+//                put("Allergens", Arrays.asList("Contains wheat", "Contains dairy"));
+//            }});
+//            repository.save(pastryItem);
+//            
+//        };
+//	}
+
+}

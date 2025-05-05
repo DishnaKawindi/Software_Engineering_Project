@@ -1,0 +1,111 @@
+package com.example.coffeeshop.model;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+@Service
+public class MenuItemService {
+    
+    @Autowired
+    private MenuItemRepository menuItemRepository;
+    
+    // Add new menu item
+    public MenuItem addMenuItem(MenuItem menuItem) {
+        // Validate name uniqueness
+        if (menuItemRepository.existsByNameIgnoreCase(menuItem.getName())) {
+            throw new IllegalArgumentException("Menu item with name '" + menuItem.getName() + "' already exists");
+        }
+        
+        // Basic validation
+        validateMenuItem(menuItem);
+        
+        return menuItemRepository.save(menuItem);
+    }
+    
+    // Update existing menu item
+    public MenuItem updateMenuItem(Long id, MenuItem menuItem) {
+        MenuItem existingItem = menuItemRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Menu item not found"));
+            
+        // Check if name is being changed and if new name already exists
+        if (!existingItem.getName().equalsIgnoreCase(menuItem.getName()) &&
+            menuItemRepository.existsByNameIgnoreCase(menuItem.getName())) {
+            throw new IllegalArgumentException("Menu item with name '" + menuItem.getName() + "' already exists");
+        }
+        
+        // Basic validation
+        validateMenuItem(menuItem);
+        
+        // Update fields
+        existingItem.setName(menuItem.getName());
+        existingItem.setDescription(menuItem.getDescription());
+        existingItem.setCategory(menuItem.getCategory());
+        existingItem.setPrice(menuItem.getPrice());
+        existingItem.setCustomizations(menuItem.getCustomizations());
+        existingItem.setNutritionalInformation(menuItem.getNutritionalInformation());
+        
+        return menuItemRepository.save(existingItem);
+    }
+    
+    // Delete menu item
+    public void deleteMenuItem(Long id) {
+        MenuItem item = menuItemRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Menu item not found"));
+            
+        // Optional: Add check if item is referenced in any orders
+        // You might want to implement soft delete instead of hard delete
+        
+        menuItemRepository.deleteById(id);
+    }
+    
+    // Get all menu items
+    public List<MenuItem> getAllMenuItems() {
+        return menuItemRepository.findAll();
+    }
+    
+    // Get menu item by id
+    public MenuItem getMenuItemById(Long id) {
+        return menuItemRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Menu item not found"));
+    }
+    
+    // Get menu items by category
+    public List<MenuItem> getMenuItemsByCategory(String category) {
+        return menuItemRepository.findByCategory(category);
+    }
+    
+    // Private helper method for validation
+    private void validateMenuItem(MenuItem menuItem) {
+        List<String> errors = new ArrayList<>();
+        
+        if (menuItem.getName() == null || menuItem.getName().trim().isEmpty()) {
+            errors.add("Name is required");
+        }
+        
+        if (menuItem.getCategory() == null || menuItem.getCategory().trim().isEmpty()) {
+            errors.add("Category is required");
+        }
+        
+        if (menuItem.getPrice() <= 0) {
+            errors.add("Price must be greater than 0");
+        }
+        
+        // Validate customizations if present
+        if (menuItem.getCustomizations() != null) {
+            for (Map.Entry<String, List<String>> entry : menuItem.getCustomizations().entrySet()) {
+                if (entry.getValue() == null || entry.getValue().isEmpty()) {
+                    errors.add("Customization options cannot be empty for: " + entry.getKey());
+                }
+            }
+        }
+        
+        if (!errors.isEmpty()) {
+            throw new IllegalArgumentException("Invalid menu item: " + String.join(", ", errors));
+        }
+    }
+}
+
+// Add these methods to MenuItemRepository if not already present
+public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
+    boolean existsByNameIgnoreCase(String name);
+    List<MenuItem> findByCategory(String category);
+}

@@ -1,0 +1,10 @@
+package com.example.coffeeshop.model;
+
+public class OrderItemDTO {
+    private Long menuItemId;
+    private String size;
+    private int quantity;
+    private Map<String, String> customizations;
+
+    // Getters and setters
+}

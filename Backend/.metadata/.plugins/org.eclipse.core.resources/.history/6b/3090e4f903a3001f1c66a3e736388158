@@ -1,0 +1,157 @@
+package com.example.coffeeshop.controller;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import com.example.coffeeshop.model.*;
+
+@RestController
+@RequestMapping("/api/admin")
+public class AdminController {
+    
+    @Autowired
+    private MenuItemService menuItemService;
+    
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @PostMapping("/menu-items")
+    public ResponseEntity<?> addMenuItem(@RequestBody MenuItem menuItem) {
+        try {
+            MenuItem savedItem = menuItemService.addMenuItem(menuItem);
+            return ResponseEntity.ok(savedItem);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Invalid menu item");
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+    
+    @PutMapping("/menu-items/{id}")
+    public ResponseEntity<?> updateMenuItem(
+            @PathVariable("id") Long id,
+            @RequestBody MenuItem menuItem) {
+        try {
+            MenuItem updatedItem = menuItemService.updateMenuItem(id, menuItem);
+            return ResponseEntity.ok(updatedItem);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Invalid menu item");
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+    
+    @DeleteMapping("/menu-items/{id}")
+    public ResponseEntity<?> deleteMenuItem(@PathVariable("id") Long id) {
+        try {
+            menuItemService.deleteMenuItem(id);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Not found");
+            error.put("message", "Menu item not found");
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    // Order Management
+    @GetMapping("/orders")
+    public ResponseEntity<List<Order>> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return ResponseEntity.ok(orders);
+    }
+    
+    @GetMapping("/orders/status/{status}")
+    public ResponseEntity<List<Order>> getOrdersByStatus(
+            @PathVariable("status") OrderStatus status) {
+        List<Order> orders = orderRepository.findByStatus(status);
+        return ResponseEntity.ok(orders);
+    }
+    
+    @GetMapping("/orders/statistics")
+    public ResponseEntity<Map<String, Object>> getOrderStatistics() {
+        Map<String, Object> stats = new HashMap<>();
+        
+        // Count orders by status
+        Map<OrderStatus, Long> ordersByStatus = Arrays.stream(OrderStatus.values())
+            .collect(Collectors.toMap(
+                status -> status,
+                status -> orderRepository.countByStatus(status)
+            ));
+        
+        // Calculate total revenue
+        double totalRevenue = orderRepository.findByStatus(OrderStatus.CONFIRMED)
+            .stream()
+            .mapToDouble(Order::getTotalAmount)
+            .sum();
+        
+        stats.put("ordersByStatus", ordersByStatus);
+        stats.put("totalRevenue", totalRevenue);
+        stats.put("totalOrders", orderRepository.count());
+        
+        return ResponseEntity.ok(stats);
+    }
+    
+    @GetMapping("/orders/placed")
+    public ResponseEntity<List<Order>> getPlacedOrders() {
+        List<Order> placedOrders = orderRepository.findByStatus(OrderStatus.CONFIRMED);
+        return ResponseEntity.ok(placedOrders);
+    }
+    
+    // Complete a specific order
+    @PutMapping("/orders/{orderId}/complete")
+    public ResponseEntity<?> completeOrder(@PathVariable("orderId") Long orderId) {
+        return orderRepository.findById(orderId)
+            .map(order -> {
+                // Verify order is in CONFIRMED status
+                if (order.getStatus() != OrderStatus.CONFIRMED) {
+                    Map<String, String> error = new HashMap<>();
+                    error.put("error", "Invalid order status");
+                    error.put("message", "Order must be CONFIRMED before it can be completed");
+                    return ResponseEntity.badRequest().body(error);
+                }
+                
+                // Update status to COMPLETED
+                order.setStatus(OrderStatus.COMPLETED);
+                Order completedOrder = orderRepository.save(order);
+                
+                // Return order details with completion time
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "Order completed successfully");
+                response.put("orderId", completedOrder.getId());
+                response.put("customerName", completedOrder.getCustomerName());
+                response.put("completionTime", LocalDateTime.now());
+                response.put("totalAmount", completedOrder.getTotalAmount());
+                response.put("items", completedOrder.getItems());
+                
+                return ResponseEntity.ok(response);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
+ // Optional: Get all completed orders
+    @GetMapping("/orders/completed")
+    public ResponseEntity<List<Order>> getCompletedOrders() {
+        List<Order> completedOrders = orderRepository.findByStatus(OrderStatus.COMPLETED);
+        return ResponseEntity.ok(completedOrders);
+    }
+
+    // Optional: Get orders by date range
+    @GetMapping("/orders/dateRange")
+    public ResponseEntity<List<Order>> getOrdersByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        
+        List<Order> orders = orderRepository.findByOrderDateBetween(startDate, endDate);
+        return ResponseEntity.ok(orders);
+    }
+}

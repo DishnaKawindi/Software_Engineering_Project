@@ -1,0 +1,8 @@
+package com.example.coffeeshop.model;
+
+public class CreateOrderDTO {
+    private String customerName;
+    private List<OrderItemDTO> items;
+
+    // Getters and setters
+}

@@ -1,0 +1,11 @@
+package com.example.coffeeshop.model;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+// Add these methods to MenuItemRepository if not already present
+public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
+    boolean existsByNameIgnoreCase(String name);
+    List<MenuItem> findByCategory(String category);
+}

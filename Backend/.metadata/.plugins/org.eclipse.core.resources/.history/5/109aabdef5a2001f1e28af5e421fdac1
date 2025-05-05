@@ -1,0 +1,94 @@
+// Order.java
+package com.example.coffeeshop.model;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "orders")
+public class Order {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "order_id")
+    private List<CartItem> items = new ArrayList<>();
+    
+    @Column(name = "order_date")
+    private LocalDateTime orderDate;
+    
+    @Column(name = "total_amount")
+    private double totalAmount;
+    
+    @Column(name = "customer_name")
+    private String customerName;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private OrderStatus status = OrderStatus.DRAFT;
+    
+    public boolean isModifiable() {
+        return this.status == OrderStatus.DRAFT;
+    }
+    
+    // Constructor
+    public Order() {
+        this.orderDate = LocalDateTime.now();
+    }
+    
+    // Helper method to calculate total
+    public void calculateTotal() {
+        this.totalAmount = items.stream()
+                .mapToDouble(item -> item.getPrice() * item.getQuantity())
+                .sum();
+    }
+    
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
+    public List<CartItem> getItems() {
+        return items;
+    }
+    
+    public void setItems(List<CartItem> items) {
+        this.items = items;
+        calculateTotal();
+    }
+    
+    public LocalDateTime getOrderDate() {
+        return orderDate;
+    }
+    
+    public void setOrderDate(LocalDateTime orderDate) {
+        this.orderDate = orderDate;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    
+    public double getTotalAmount() {
+        return totalAmount;
+    }
+    
+    public String getCustomerName() {
+        return customerName;
+    }
+    
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+}

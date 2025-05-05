@@ -1,0 +1,11 @@
+package com.example.coffeeshop.model;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface OrderRepository extends JpaRepository<Order,Long> {
+ List<Order> findByCustomerNameOrderByOrderDateDesc(String customerName);
+ List<Order> findByStatus(String status);
+ Page<Order> findByStatus(OrderStatus status, Pageable pageable);
+}

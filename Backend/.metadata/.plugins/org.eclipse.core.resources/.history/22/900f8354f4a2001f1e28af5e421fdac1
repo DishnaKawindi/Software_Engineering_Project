@@ -1,0 +1,92 @@
+// OrderController.java
+package com.example.coffeeshop.controller;
+
+import com.example.coffeeshop.model.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+    
+    @Autowired
+    private OrderRepository orderRepository;
+    
+    @Autowired
+    private CartItemRepository cartItemRepository;
+    
+    // Create new order
+    @PostMapping
+    public ResponseEntity<Order> createOrder(@RequestBody Order order) {
+        order.setOrderDate(LocalDateTime.now());
+        order.calculateTotal();
+        Order savedOrder = orderRepository.save(order);
+        return ResponseEntity.ok(savedOrder);
+    }
+    
+    // Get order by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Order> getOrder(@PathVariable Long id) {
+        return orderRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // Get all orders
+    @GetMapping
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+    
+    // Update order status
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Order> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+        return orderRepository.findById(id)
+                .map(order -> {
+                    order.setStatus(status);
+                    Order updatedOrder = orderRepository.save(order);
+                    return ResponseEntity.ok(updatedOrder);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // Add items to order
+    @PostMapping("/{id}/items")
+    public ResponseEntity<Order> addItemsToOrder(
+            @PathVariable Long id,
+            @RequestBody List<CartItem> items) {
+        return orderRepository.findById(id)
+                .map(order -> {
+                    order.getItems().addAll(items);
+                    order.calculateTotal();
+                    Order updatedOrder = orderRepository.save(order);
+                    return ResponseEntity.ok(updatedOrder);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // Get orders by customer
+    @GetMapping("/customer/{customerName}")
+    public List<Order> getOrdersByCustomer(@PathVariable String customerName) {
+        return orderRepository.findByCustomerNameOrderByOrderDateDesc(customerName);
+    }
+    
+    // Get orders by status
+    @GetMapping("/status/{status}")
+    public List<Order> getOrdersByStatus(@PathVariable String status) {
+        return orderRepository.findByStatus(status);
+    }
+    
+    // Delete order
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        if (orderRepository.existsById(id)) {
+            orderRepository.deleteById(id);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+}

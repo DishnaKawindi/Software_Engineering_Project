@@ -1,0 +1,425 @@
+{
+	"info": {
+		"_postman_id": "483066e1-b43a-467e-88e6-39421b2e9834",
+		"name": "Coffeeshop",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39010105"
+	},
+	"item": [
+		{
+			"name": "Order Creation",
+			"item": [
+				{
+					"name": "GetMenuItems",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "create an order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n    \"customerName\": \"John Doe\",\r\n    \"items\": [\r\n        {\r\n            \"menuItemId\": 1,\r\n            \"size\": \"MEDIUM\",\r\n            \"quantity\": 2,\r\n            \"customizations\": {\r\n                \"Milk Type\": \"Almond\",\r\n                \"Flavor\": \"Vanilla\"\r\n            }\r\n        },\r\n        {\r\n            \"menuItemId\": 2,\r\n            \"size\": \"LARGE\",\r\n            \"quantity\": 1,\r\n            \"customizations\": {\r\n                \"Milk Type\": \"Oat\",\r\n                \"Flavor\": \"Caramel\"\r\n            }\r\n        },\r\n        {\r\n            \"menuItemId\": 4,\r\n            \"quantity\": 2,\r\n            \"size\": \"REGULAR\",\r\n            \"customizations\": {\r\n                \"Allergens\": \"Contains wheat\"\r\n            }\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/orders",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add item to an order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"menuItemId\": 3,\r\n    \"size\": \"SMALL\",\r\n    \"quantity\": 1,\r\n    \"customizations\": {\r\n        \"Milk Type\": \"Soy\",\r\n        \"Sweetness\": \"Medium\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/orders/1/items",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"orders",
+								"1",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update item in an order",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "// PUT /api/orders/1/items/1\r\n{\r\n    \"menuItemId\": 1,\r\n    \"size\": \"LARGE\",\r\n    \"quantity\": 3,\r\n    \"customizations\": {\r\n        \"Milk Type\": \"Oat\",\r\n        \"Flavor\": \"Hazelnut\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/orders/1/items/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"orders",
+								"1",
+								"items",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Checkout order",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/orders/1/checkout",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"orders",
+								"1",
+								"checkout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm the order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/orders/1/confirm",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"orders",
+								"1",
+								"confirm"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "See order",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/orders/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"orders",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Add Menu item",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "adminPass123",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Mocha Frappuccino\",\r\n    \"description\": \"Blended coffee with rich mocha sauce\",\r\n    \"category\": \"Coffee\",\r\n    \"price\": 4.99,\r\n    \"customizations\": {\r\n        \"Milk Type\": [\r\n            \"Whole\",\r\n            \"Skim\",\r\n            \"Almond\",\r\n            \"Oat\"\r\n        ],\r\n        \"Toppings\": [\r\n            \"Whipped Cream\",\r\n            \"Chocolate Chips\",\r\n            \"Caramel Drizzle\"\r\n        ],\r\n        \"Size\": [\r\n            \"Small\",\r\n            \"Medium\",\r\n            \"Large\"\r\n        ]\r\n    },\r\n    \"nutritionalInformation\": [\r\n        \"280 calories\",\r\n        \"35g sugar\",\r\n        \"12g fat\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/admin/menu-items",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"menu-items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update menu item",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "adminPass123",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Mocha Frappuccino\",\r\n    \"description\": \"Blended coffee with premium mocha sauce\",\r\n    \"category\": \"Coffee\",\r\n    \"price\": 5.49,\r\n    \"customizations\": {\r\n        \"Milk Type\": [\r\n            \"Whole\",\r\n            \"Skim\",\r\n            \"Almond\",\r\n            \"Oat\",\r\n            \"Soy\"\r\n        ],\r\n        \"Toppings\": [\r\n            \"Whipped Cream\",\r\n            \"Chocolate Chips\",\r\n            \"Caramel Drizzle\",\r\n            \"Cookie Crumbs\"\r\n        ],\r\n        \"Size\": [\r\n            \"Small\",\r\n            \"Medium\",\r\n            \"Large\"\r\n        ]\r\n    },\r\n    \"nutritionalInformation\": [\r\n        \"280 calories\",\r\n        \"35g sugar\",\r\n        \"12g fat\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/admin/menu-items/5",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"menu-items",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin See all Orders",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "adminPass123",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/orders",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin see order by status",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "adminPass123",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/orders/status/CONFIRMED",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"orders",
+								"status",
+								"CONFIRMED"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin see placed orders",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "adminPass123",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/orders/placed",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"orders",
+								"placed"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin complete the order",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "adminPass123",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/orders/1/complete",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"orders",
+								"1",
+								"complete"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

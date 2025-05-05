@@ -1,0 +1,12 @@
+package com.example.coffeeshop.model;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface OrderRepository extends JpaRepository<Order,Long> {
+	List<Order> findByStatus(OrderStatus status);
+    long countByStatus(OrderStatus status);
+    List<Order> findByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+}
